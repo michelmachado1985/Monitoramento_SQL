@@ -1,0 +1,222 @@
+--Verificar qual tipo de modo de recuperação.
+SELECT name AS NomeBanco,
+       recovery_model_desc AS ModoRecuperacao
+FROM sys.databases
+ORDER BY name;
+
+--
+ALTER DATABASE [NomeDoSeuBanco]
+SET RECOVERY FULL -- ou SIMPLE, ou BULK_LOGGED
+WITH NO_WAIT;
+
+--Criação de banco de dados
+
+CREATE DATABASE Escola
+ON PRIMARY
+(
+Name		= 'Escola_primary',
+filename    = 'C:\Bancos\Escola\Escola_primary.mdf',
+size        = 10MB,
+maxsize     = 100MB,
+filegrowth  = 10MB
+)
+LOG ON
+(
+Name		= 'Escola_Log',
+filename    = 'C:\Bancos\Escola\Escola_Log.ldf',
+size        = 1MB,
+maxsize     = 10MB,
+filegrowth  = 1MB
+)
+
+
+Exec sp_addumpdevice
+ @devtype     =  'Disk', 
+ @logicalname =  'BackupEscola',
+ @physicalname = 'C:\Backup\Escola\Escola.bak'
+
+
+ -----------------------------------------------------------------------------------
+Use Escola
+go 
+-----------------------------------------------------------------------------------
+CREATE TABLE Materia
+(
+Cod_Mat int,
+Nome_Mat char(30)
+)
+go 
+CREATE TABLE   Professor
+(
+Cod_Prof int,
+Nome_Prof char(30)
+)
+go 
+CREATE TABLE Aluno
+(
+Cod_Aluno int,
+Nome_Aluno char(30)
+)
+go 
+CREATE TABLE Funcionario
+(
+Cod_Func int,
+Nome_Func char(30)
+)
+go 
+-----------------------------------------------------------------------------------
+INSERT Materia VALUES(1,'Matemática')
+INSERT Materia VALUES(2,'Física')
+go
+INSERT Professor VALUES(1,'Leandro')
+INSERT Professor VALUES(2,'Marcos')
+go 
+INSERT Aluno VALUES(1,'André')
+INSERT Aluno VALUES(2,'José')
+go
+INSERT Funcionario VALUES(1,'Paulo')
+INSERT Funcionario VALUES(2,'Paula')
+go
+Checkpoint
+go
+/* ******************************************************* */
+BACKUP DATABASE  Escola
+TO backupEscola
+WITH
+DESCRIPTION = 'Primeiro Backup Full do Database Escola',
+INIT,
+MEDIANAME = 'Backup Escola',
+NAME = 'Backup Full Escola'
+go
+/******************************************************** */
+INSERT Materia VALUES(3,'Química')
+INSERT Materia VALUES(4,'Astronimia')
+go
+INSERT Professor VALUES(3,'Paulo')
+INSERT Professor VALUES(4,'Roberta')
+go
+INSERT Aluno VALUES(3,'Renato')
+INSERT Aluno VALUES(4,'Ricardo')
+go
+INSERT Funcionario VALUES(3,'Mauro')
+INSERT Funcionario VALUES(4,'Maura')
+go
+Checkpoint
+go
+
+/* ******************************************************* */
+BACKUP LOG Escola
+TO backupEscola
+WITH
+DESCRIPTION = 'Primeiro Backup Log do Database Escola',
+NOINIT,
+MEDIANAME = 'Backup Escola',
+NAME = 'Backup Log 1 Escola'
+go
+/* ******************************************************* */
+INSERT Materia VALUES(5,'Astrologia')
+INSERT Materia VALUES(6,'Quiromancia')
+go
+INSERT Professor VALUES(5,'Morgana')
+INSERT Professor VALUES(6,'Odavlas')
+go
+INSERT Aluno VALUES(5,'Agnes')
+INSERT Aluno VALUES(6,'Agnus')
+go
+INSERT Funcionario VALUES(5,'Marcelo')
+INSERT Funcionario VALUES(6,'Mauricio')
+go
+Checkpoint
+go
+/* ******************************************************* */
+BACKUP LOG Escola
+TO backupEscola
+WITH
+DESCRIPTION = 'Segundo Backup Log do Database Escola',
+NOINIT,
+MEDIANAME = 'Backup Escola',
+NAME = 'Backup Log 2 Escola'
+go
+/* ******************************************************* */
+INSERT Materia VALUES(7,'Taro')
+INSERT Materia VALUES(8,'Cartomancia')
+go
+INSERT Professor VALUES(7,'Zoroastra')
+INSERT Professor VALUES(8,'Zoroastro')
+go
+INSERT Aluno VALUES(7,'Eleotério')
+INSERT Aluno VALUES(8,'Midas')
+go
+INSERT Funcionario VALUES(7,'Cristina')
+INSERT Funcionario VALUES(8,'Cristiano')
+go
+Checkpoint
+go
+/* ******************************************************* */
+BACKUP DATABASE Escola
+TO backupEscola
+WITH
+DIFFERENTIAL,
+DESCRIPTION = 'Backup Diferencial do database Escola',
+NOINIT,
+MEDIANAME = 'Backup Escola',
+NAME = 'Backup Diferencial Escola'
+go
+/* ******************************************************* */
+INSERT Materia VALUES(9,'Telepatia')
+INSERT Materia VALUES(10,'Runas')
+go
+INSERT Professor VALUES(9,'Rubeo')
+INSERT Professor VALUES(10,'Nana Sara')
+go
+INSERT Aluno VALUES(9,'Silvia')
+INSERT Aluno VALUES(10,'Sonia')
+go
+INSERT Funcionario VALUES(9,'Bianca')
+INSERT Funcionario VALUES(10,'Beatriz')
+go
+Checkpoint
+go
+/* ******************************************************* */
+BACKUP LOG Escola
+TO backupEscola
+WITH
+DESCRIPTION = 'Terceiro Backup Log do Database Escola',
+NOINIT,
+MEDIANAME = 'Backup Escola',
+NAME = 'Backup Log 3 Escola'
+go
+/* ******************************************************* */
+SELECT * FROM Materia
+SELECT * FROM Professor 
+SELECT * FROM Aluno 
+SELECT * FROM Funcionario
+/* ******************************************************* */
+RESTORE HEADERONLY
+FROM DISK = 'C:\backup\Escola\Escola.bak'
+/* ******************************************************* */
+Use Master
+go
+DROP DATABASE Escola
+go
+/* ******************************************************* */
+RESTORE DATABASE Escola
+FROM backupEscola
+WITH  FILE = 1, NORECOVERY
+go
+RESTORE DATABASE Escola
+FROM backupEscola
+WITH  FILE = 4, NORECOVERY
+go
+RESTORE LOG Escola
+FROM backupEscola
+WITH  FILE = 5, RECOVERY
+go
+/* ******************************************************* */
+Use Escola
+go
+SELECT * FROM Materia
+SELECT * FROM Aluno
+SELECT * FROM Professor
+SELECT * FROM Funcionario
+/* ******************************************************* */
