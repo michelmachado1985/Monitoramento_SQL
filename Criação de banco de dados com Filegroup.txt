@@ -1,0 +1,111 @@
+-- Este código verifica se há no disco C:\ uma pasta chamada Bancos e se não 
+-- houver ela será criada
+DECLARE @result int
+EXEC @result = xp_cmdshell 'dir C:\Bancos\Faculdade'
+IF (@result <> 0)
+   Exec master.dbo.xp_cmdshell 'MD C:\Bancos\Faculdade'
+go
+------------------------------------------------------------------
+CREATE DATABASE Faculdade
+ON PRIMARY
+(
+  name= 'Faculdade_primary',
+  filename='C:\Bancos\Faculdade\Faculdade_primary1.mdf',
+  size= 10MB,
+  maxsize=UNLIMITED,
+  filegrowth= 10MB
+),
+FILEGROUP DADOS
+(
+  name= 'Faculdade_Dados',
+  filename='C:\Bancos\Faculdade\Faculdade_Dados1.ndf',
+  size= 10MB,
+  maxsize=UNLIMITED,
+  filegrowth= 10MB
+),
+FILEGROUP INDICES
+(
+  name= 'Faculdade_Index',
+  filename='C:\Bancos\Faculdade\Faculdade_indices1.ndf',
+  size= 10MB,
+  maxsize=UNLIMITED,
+  filegrowth= 10MB
+)
+LOG ON
+(
+  name= 'Faculdade_Log',
+  filename='C:\Bancos\Faculdade\Faculdade_Log1.ldf',
+  size= 1MB,
+  maxsize=10MB,
+  filegrowth= 1MB
+),
+(
+  name= 'Faculdade_Log2',
+  filename='C:\Bancos\Faculdade\Faculdade_Log2.ldf',
+  size= 1MB,
+  maxsize=10MB,
+  filegrowth= 1MB
+)COLLATE Latin1_General_CI_AI_KS
+go
+
+
+USE Faculdade
+go
+CREATE TABLE Aluno
+(
+Cod_Aluno	Int,	
+Nome_Aluno	Varchar(100)
+)ON Dados
+go
+INSERT Aluno VALUES(1,'Cristina')
+INSERT Aluno VALUES(2,'Rosana')
+INSERT Aluno VALUES(3,'Roberto')
+INSERT Aluno VALUES(4,'Marcos')
+INSERT Aluno VALUES(5,'Ana')
+go
+CREATE TABLE Treinamento
+(
+Cod_Trein	Int	,
+Nome_Trein	Varchar(100)	Collate Latin1_General_CI_AS_KS_WS
+)ON Dados
+go
+INSERT Treinamento VALUES(1,'SQL Server')
+INSERT Treinamento VALUES(2,'Oracle')
+INSERT Treinamento VALUES(3,'DB2')
+INSERT Treinamento VALUES(4,'Sybase')
+INSERT Treinamento VALUES(5,'Postgresql')
+go
+Exec SP_HelpFile
+go
+Exec SP_HelpFileGroup
+go
+Exec SP_HelpSort
+go
+SELECT * FROM ::Fn_HelpCollations()
+WHERE name = 'Latin1_General_CI_AI_KS'
+go
+Exec SP_Help 'Aluno'
+go
+Exec SP_Help 'Treinamento'
+go
+SELECT syscolumns.Name,
+                 syscolumns.Collation 
+FROM sysobjects,syscolumns
+WHERE sysobjects.id = syscolumns.id
+and sysobjects.Name = 'Aluno'
+go
+SELECT syscolumns.Name,
+                 syscolumns.Collation 
+FROM sysobjects,syscolumns
+WHERE sysobjects.id = syscolumns.id
+and sysobjects.Name = 'Treinamento'
+go
+
+CREATE NONCLUSTERED INDEX I_Aluno_1
+ON Aluno(Nome_Aluno)
+ON INDICES
+go
+CREATE NONCLUSTERED INDEX I_Trein_1
+ON Treinamento(Nome_Trein)
+ON INDICES
+go
